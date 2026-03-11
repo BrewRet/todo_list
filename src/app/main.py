@@ -26,7 +26,7 @@ async def get_tasks():
     }
 
 
-@app.get("tasks/{id}")
+@app.get("/tasks/{id}")
 async def get_task_by_id(id:int):
     global tasks
     try:
@@ -50,11 +50,11 @@ async def change_task(id:int, task: RequestTask):
         tasks[id] = (task.title, task.description)
     except IndexError:
         raise HTTPException(404, f"Task by this id: {id}, not found")
-    return {f"task {id}": task[id]}
+    return {f"task {id}": tasks[id]}
 
 
 @app.delete("/tasks/{id}")
-async def delete_task(id):
+async def delete_task(id:int):
     global tasks
     try:
         tasks.pop(id)
