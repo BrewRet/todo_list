@@ -1,8 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from services.task_service import (
+    get_all_tasks,
+    get_task_by_id,
+    add_task_by_id,
+    change_task_by_id,
+    delete_task_by_id,
+)
 
-tasks = []
+
 
 
 class RequestTask(BaseModel):
@@ -18,46 +25,44 @@ async def root():
         "message": "Hello World"
     }
 
+
 @app.get("/tasks")
 async def get_tasks():
-    global tasks
+    tasks = await get_all_tasks()
     return {
-        "tasks":  tasks
+        "tasks": tasks
     }
 
 
 @app.get("/tasks/{id}")
-async def get_task_by_id(id:int):
-    global tasks
+async def show_task_by_id(id:int):
     try:
-        task = tasks[id]
+        task = await get_task_by_id(id)
         return {id: task}
     except IndexError:
         raise HTTPException(404, f"Task by this id: {id}, not found")
 
 
 @app.post("/tasks")
-async def post_task(task: RequestTask):
-    global tasks
-    tasks.append((task.title, task.description))
+async def add_task(task: RequestTask):
+    await add_task_by_id(**task)
     return {"result": "Task added"}
 
 
 @app.put("/tasks/{id}")
 async def change_task(id:int, task: RequestTask):
-    global tasks
     try: 
-        tasks[id] = (task.title, task.description)
+        await change_task_by_id(id, **task)
     except IndexError:
         raise HTTPException(404, f"Task by this id: {id}, not found")
-    return {f"task {id}": tasks[id]}
+    return {"result": "Success"}
 
 
 @app.delete("/tasks/{id}")
 async def delete_task(id:int):
-    global tasks
+
     try:
-        tasks.pop(id)
+        await delete_task_by_id(id)
     except IndexError:
         raise HTTPException(404, f"Task by this id: {id}, not found")
     return {"result": "Task deleted"}
